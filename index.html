@@ -14,14 +14,14 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease, color 0.3s ease; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; -webkit-tap-highlight-color: transparent; }
         
-        /* Fixed Sidebar Logic */
-        #sidebar { transition: transform 0.3s ease, width 0.3s ease; width: 280px; }
+        /* Layout Fixes */
+        #sidebar { transition: transform 0.3s ease, width 0.3s ease; width: 280px; display: flex; flex-direction: column; }
         #mainContainer { transition: padding-left 0.3s ease; }
 
         @media (max-width: 1024px) {
-            #sidebar { position: fixed; transform: translateX(-100%); z-index: 50; height: 100%; top: 0; padding-top: 4rem; }
+            #sidebar { position: fixed; transform: translateX(-100%); z-index: 2000; height: 100vh; top: 0; padding-top: 5rem; }
             #mainContainer { padding-left: 0 !important; }
             body.sidebar-open #sidebar { transform: translateX(0); }
             body.sidebar-open #mobileOverlay { display: block; }
@@ -33,27 +33,28 @@
             #mobileOverlay { display: none !important; }
         }
 
-        .sidebar-link { @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800; }
+        /* Nav Link Precision */
+        .sidebar-link { @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all w-full; }
+        .sidebar-link { color: #64748b; }
+        .dark .sidebar-link { color: #94a3b8; }
         .sidebar-link.active { background: #6366f1 !important; color: white !important; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
 
-        /* Smooth Masonry-ish Grid */
-        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 1.5rem; }
-        .note-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); break-inside: avoid; }
-        .note-item:hover { transform: translateY(-5px); }
-
-        #settingsDropdown { transform-origin: top right; transition: all 0.2s ease; z-index: 2000; }
+        .note-item { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 1.5rem; }
+        
+        #settingsDropdown { transform-origin: top right; transition: all 0.2s ease; z-index: 3000; }
         .hidden-scale { transform: scale(0.95); opacity: 0; pointer-events: none; }
         
-        canvas { touch-action: none; cursor: crosshair; background: #fff; border-radius: 1rem; width: 100%; aspect-ratio: 16/9; }
+        canvas { touch-action: none; cursor: crosshair; background: #fff; border-radius: 1.5rem; width: 100%; aspect-ratio: 16/9; }
         .dark canvas { background: #1e293b; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-[#0f172a] min-h-screen text-slate-900 dark:text-slate-100 sidebar-open">
 
-    <div id="mobileOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[45] hidden"></div>
+    <div id="mobileOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1500] hidden"></div>
 
-    <nav class="bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-md border-b dark:border-slate-800 h-16 fixed top-0 w-full z-[1000] px-4 md:px-6 flex items-center justify-between">
+    <nav class="bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-md border-b dark:border-slate-800 h-16 fixed top-0 w-full z-[2500] px-4 md:px-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl active:scale-90 transition-all">
                 <i class="fa-solid fa-bars-staggered"></i>
@@ -76,11 +77,11 @@
             </button>
             <div id="settingsDropdown" class="hidden-scale absolute right-0 mt-4 w-72 bg-white dark:bg-[#1e293b] rounded-3xl shadow-2xl border dark:border-slate-700 overflow-hidden">
                 <div class="p-4 space-y-3">
-                    <button onclick="toggleDarkMode()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all dark:text-slate-200">
-                        <i class="fa-solid fa-moon"></i> Appearance Mode
+                    <button onclick="toggleDarkMode()" class="w-full text-left text-sm font-semibold flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all dark:text-slate-200">
+                        <i class="fa-solid fa-moon text-indigo-500"></i> Appearance Mode
                     </button>
-                    <button onclick="toggleView()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all dark:text-slate-200">
-                        <i class="fa-solid fa-table-cells-large"></i> Grid/List Toggle
+                    <button onclick="toggleView()" class="w-full text-left text-sm font-semibold flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all dark:text-slate-200">
+                        <i class="fa-solid fa-table-cells-large text-indigo-500"></i> Toggle Grid/List
                     </button>
                     <hr class="dark:border-slate-700">
                     <button onclick="generateSyncCode()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl"><i class="fa-solid fa-share-nodes"></i> Get Cloud Sync Code</button>
@@ -92,52 +93,54 @@
     </nav>
 
     <aside id="sidebar" class="fixed left-0 bg-white dark:bg-[#1e293b] border-r dark:border-slate-800 overflow-y-auto no-scrollbar">
-        <div class="p-4 space-y-6">
-            <div class="space-y-1">
+        <div class="p-4 flex flex-col h-full">
+            <div class="space-y-1 mb-8">
                 <button onclick="setViewContext('all')" id="ctx-all" class="sidebar-link active"><i class="fa-solid fa-note-sticky"></i> All Notes</button>
                 <button onclick="setViewContext('reminders')" id="ctx-reminders" class="sidebar-link"><i class="fa-solid fa-bell"></i> Reminders</button>
                 <button onclick="setViewContext('media')" id="ctx-media" class="sidebar-link"><i class="fa-solid fa-image"></i> Media Only</button>
                 <button onclick="setViewContext('bin')" id="ctx-bin" class="sidebar-link"><i class="fa-solid fa-trash-can"></i> Trash Bin</button>
             </div>
-            <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Labels</p>
-                <div id="sidebarTags" class="space-y-1"></div>
+            
+            <div class="flex-grow">
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Labels</p>
+                <div id="sidebarTags" class="flex flex-col gap-1"></div>
             </div>
-            <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border dark:border-indigo-800/30 absolute bottom-8 left-4 right-4">
+
+            <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl border dark:border-indigo-800/30 mt-auto">
                 <p class="text-[9px] font-black text-indigo-500 uppercase mb-2 text-center">Storage Status (10GB)</p>
                 <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mb-2"><div id="storageBar" class="bg-indigo-500 h-1 rounded-full" style="width: 1%"></div></div>
-                <p id="storageText" class="text-[9px] text-slate-500 dark:text-slate-400 text-center uppercase font-bold tracking-tight">Syncing...</p>
+                <p id="storageText" class="text-[9px] text-slate-500 dark:text-slate-400 text-center font-bold tracking-tight uppercase">Syncing...</p>
             </div>
         </div>
     </aside>
 
     <main id="mainContainer" class="pt-24 pl-[280px] pr-4 md:pr-8 transition-all">
         
-        <div id="noteCreator" class="max-w-2xl mx-auto bg-white dark:bg-[#1e293b] rounded-[2rem] shadow-xl border dark:border-slate-800 mb-12 overflow-hidden transition-all duration-500">
+        <div id="noteCreator" class="max-w-2xl mx-auto bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border dark:border-slate-800 mb-12 overflow-hidden transition-all duration-500">
             <div id="collapsedInput" onclick="expandCreator()" class="px-8 py-5 flex justify-between items-center cursor-text group">
-                <span class="text-slate-400 font-medium group-hover:text-indigo-500 transition-colors">Capture your thought...</span>
+                <span class="text-slate-400 font-medium group-hover:text-indigo-500 transition-colors">Capture your next big idea...</span>
                 <div class="flex gap-4 text-slate-300"><i class="fa-solid fa-paintbrush"></i><i class="fa-solid fa-image"></i></div>
             </div>
 
             <div id="expandedInput" class="hidden p-8 animate-in fade-in zoom-in duration-300">
                 <div class="flex items-center gap-4 mb-4">
-                    <input type="text" id="noteTitle" placeholder="Project Name" class="flex-grow font-bold text-2xl outline-none bg-transparent dark:text-white placeholder-slate-200">
+                    <input type="text" id="noteTitle" placeholder="Title" class="flex-grow font-bold text-2xl outline-none bg-transparent dark:text-white placeholder-slate-200">
                     <button onclick="toggleFocusMode()" id="focusBtn" class="text-slate-400 hover:text-indigo-500 transition-colors"><i class="fa-solid fa-expand"></i></button>
                 </div>
                 <textarea id="noteContent" oninput="triggerAutoSave()" placeholder="Start writing..." class="w-full outline-none bg-transparent dark:text-slate-300 min-h-[160px] resize-none text-lg leading-relaxed"></textarea>
                 
-                <div id="sketchArea" class="hidden mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border dark:border-slate-800">
+                <div id="sketchArea" class="hidden mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border dark:border-slate-800">
                     <div class="flex gap-4 items-center mb-4">
-                        <button onclick="setTool('pencil')" id="t-pencil" class="p-2 rounded-lg bg-indigo-600 text-white shadow-lg"><i class="fa-solid fa-pencil"></i></button>
-                        <button onclick="setTool('eraser')" id="t-eraser" class="p-2 rounded-lg bg-white dark:bg-slate-800 border dark:border-slate-700 shadow-sm"><i class="fa-solid fa-eraser"></i></button>
+                        <button onclick="setTool('pencil')" id="t-pencil" class="p-2.5 rounded-xl bg-indigo-600 text-white shadow-lg"><i class="fa-solid fa-pencil"></i></button>
+                        <button onclick="setTool('eraser')" id="t-eraser" class="p-2.5 rounded-xl bg-white dark:bg-slate-800 border shadow-sm"><i class="fa-solid fa-eraser"></i></button>
                         <input type="range" id="penWidth" min="1" max="40" value="4" class="w-32 accent-indigo-500">
-                        <button onclick="clearCanvas()" class="ml-auto text-xs text-rose-500 font-bold uppercase tracking-widest hover:underline">Clear</button>
+                        <button onclick="clearCanvas()" class="ml-auto text-[10px] text-rose-500 font-black uppercase tracking-widest hover:underline">Wipe Board</button>
                     </div>
                     <canvas id="canvasBoard" width="850" height="400" class="shadow-inner border dark:border-slate-800"></canvas>
                 </div>
 
-                <div id="previewContainer" class="hidden mb-6 relative inline-block">
-                    <img id="imgPrev" src="" class="max-h-64 rounded-2xl shadow-xl border-4 border-white dark:border-slate-700">
+                <div id="previewContainer" class="hidden mb-6 relative inline-block animate-in zoom-in duration-200">
+                    <img id="imgPrev" src="" class="max-h-64 rounded-3xl shadow-xl border-4 border-white dark:border-slate-700">
                     <button onclick="selectedImg=''; document.getElementById('previewContainer').classList.add('hidden')" class="absolute -top-3 -right-3 bg-rose-500 text-white w-8 h-8 rounded-full shadow-lg">×</button>
                 </div>
 
@@ -145,30 +148,29 @@
                     <div class="flex gap-6 items-center text-slate-400 text-xl">
                         <button onclick="toggleSketch()"><i class="fa-solid fa-paintbrush hover:text-indigo-500 transition-colors"></i></button>
                         <button onclick="startVoice()" id="micBtn"><i class="fa-solid fa-microphone hover:text-rose-500"></i></button>
-                        <label class="cursor-pointer" title="Add Image"><i class="fa-solid fa-image hover:text-indigo-500"></i><input type="file" accept="image/*" class="hidden" onchange="handleImg(event)"></label>
+                        <label class="cursor-pointer"><i class="fa-solid fa-image hover:text-indigo-500"></i><input type="file" accept="image/*" class="hidden" onchange="handleImg(event)"></label>
                         <button onclick="toggleRem()"><i class="fa-solid fa-bell hover:text-amber-500"></i></button>
                         <button onclick="exportCurrentToPDF()"><i class="fa-solid fa-file-pdf hover:text-rose-500"></i></button>
-                        <input type="text" id="noteTags" placeholder="#tags" class="text-xs bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full outline-none w-24 border dark:border-slate-700 dark:text-white">
-                        <input type="color" id="noteColor" value="#ffffff" class="w-6 h-6 bg-transparent cursor-pointer rounded-full border-none">
+                        <input type="text" id="noteTags" placeholder="#tags" class="text-xs bg-slate-100 dark:bg-slate-800 px-5 py-2.5 rounded-full outline-none w-28 border dark:border-slate-700 dark:text-white font-bold">
                     </div>
                     <div class="flex gap-4 w-full sm:w-auto">
-                        <span id="autoSaveMsg" class="text-[10px] text-emerald-500 font-bold self-center opacity-0 transition-opacity uppercase tracking-widest">Saved</span>
-                        <button onclick="closeCreator()" class="flex-1 sm:flex-none px-6 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all">Cancel</button>
-                        <button onclick="saveNote()" id="saveBtn" class="flex-1 sm:flex-none px-10 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-2xl shadow-xl hover:bg-indigo-700 active:scale-95 transition-all">Save Note</button>
+                        <span id="autoSaveMsg" class="text-[9px] text-emerald-500 font-black self-center opacity-0 transition-opacity uppercase tracking-widest">Autosaved</span>
+                        <button onclick="closeCreator()" class="flex-1 sm:flex-none px-8 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all">Cancel</button>
+                        <button onclick="saveNote()" id="saveBtn" class="flex-1 sm:flex-none px-12 py-3 bg-indigo-600 text-white font-black rounded-2xl shadow-xl hover:bg-indigo-700 active:scale-95 transition-all">Save Note</button>
                     </div>
                 </div>
                 <div id="remBox" class="hidden mt-6 pt-6 border-t dark:border-slate-800">
-                    <input type="datetime-local" id="noteRem" class="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl w-full outline-none text-sm dark:text-white border dark:border-slate-700">
+                    <input type="datetime-local" id="noteRem" class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl w-full outline-none text-sm dark:text-white border dark:border-slate-700 font-bold">
                 </div>
             </div>
         </div>
 
-        <div id="binHeader" class="hidden max-w-6xl mx-auto mb-8 p-5 bg-rose-50 dark:bg-rose-900/10 rounded-3xl border border-rose-100 dark:border-rose-900/30 flex justify-between items-center text-rose-600 font-semibold shadow-sm">
-            <span class="text-sm">Items in Bin are automatically kept.</span>
-            <button onclick="emptyBin()" class="text-xs font-black uppercase tracking-widest hover:underline">Empty All</button>
+        <div id="binHeader" class="hidden max-w-6xl mx-auto mb-8 p-6 bg-rose-50 dark:bg-rose-900/10 rounded-[2rem] border border-rose-100 dark:border-rose-900/30 flex justify-between items-center text-rose-600 font-semibold shadow-sm">
+            <span class="text-sm tracking-tight italic uppercase font-black">Trash Bin (Secure Storage)</span>
+            <button onclick="emptyBin()" class="text-xs font-black uppercase tracking-widest hover:underline bg-rose-600 text-white px-6 py-2 rounded-xl shadow-lg">Empty All</button>
         </div>
         
-        <div id="notesDisplay" class="notes-grid transition-all duration-700 pb-24"></div>
+        <div id="notesDisplay" class="notes-grid pb-24 transition-all duration-700"></div>
     </main>
 
     <script>
@@ -176,7 +178,7 @@
             let db, notes = [], bin = [], viewCtx = 'all', isGrid = true, selectedImg = "", editingId = null, autoSaveT = null;
             let drawTool = 'pencil', isDrawing = false;
 
-            const dbReq = indexedDB.open("CloudWorkspaceV8", 1);
+            const dbReq = indexedDB.open("CloudWorkspaceV9", 1);
             dbReq.onupgradeneeded = e => {
                 db = e.target.result;
                 db.createObjectStore("notes", { keyPath: "id" });
@@ -211,18 +213,17 @@
                 }).sort((a,b) => b.id - a.id).forEach(note => {
                     const card = document.createElement('div');
                     const isDark = document.documentElement.classList.contains('dark');
-                    card.className = `note-item bg-white dark:bg-[#1e293b] rounded-3xl shadow-sm border dark:border-slate-800 overflow-hidden group active:scale-[0.99]`;
+                    card.className = `note-item bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-sm border dark:border-slate-800 overflow-hidden group active:scale-[0.99]`;
                     
-                    // Contrast Handling: Pick light background in light mode, but dark in dark mode
                     if (!isDark && note.color !== '#ffffff') card.style.backgroundColor = note.color;
 
                     card.innerHTML = `
                         ${note.img ? `<img src="${note.img}" class="w-full object-cover max-h-80 border-b dark:border-slate-800">` : ''}
                         ${note.sketch ? `<img src="${note.sketch}" class="w-full bg-white dark:bg-slate-900 border-b dark:border-slate-800">` : ''}
-                        <div class="p-6">
-                            <div class="flex justify-between items-start mb-2">
-                                <h3 class="font-bold text-lg leading-tight line-clamp-2 text-slate-900 dark:text-white">${note.title}</h3>
-                                <div class="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+                        <div class="p-8">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="font-bold text-xl tracking-tight leading-tight line-clamp-2 text-slate-900 dark:text-white">${note.title}</h3>
+                                <div class="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
                                     <button onclick="exportNotePDF(${note.id})" class="p-2 text-rose-500 hover:scale-110 transition"><i class="fa-solid fa-file-pdf"></i></button>
                                     ${viewCtx === 'bin' ? 
                                         `<button onclick="restore(${note.id})" class="p-2 text-indigo-500"><i class="fa-solid fa-rotate-left"></i></button>` :
@@ -231,10 +232,10 @@
                                     }
                                 </div>
                             </div>
-                            <p class="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed line-clamp-6 mb-4">${note.content}</p>
+                            <p class="text-sm text-slate-500 dark:text-slate-300 whitespace-pre-wrap leading-relaxed line-clamp-6 mb-4 font-medium">${note.content}</p>
                             <div class="flex flex-wrap gap-2 mt-5">
-                                ${note.tags.map(t => `<span class="text-[9px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 px-3 py-1 rounded-full font-bold uppercase tracking-wider">#${t}</span>`).join('')}
-                                ${note.rem ? `<span class="text-[9px] bg-indigo-50 text-indigo-500 px-3 py-1 rounded-full font-black uppercase tracking-widest"><i class="fa-solid fa-clock mr-1"></i>${new Date(note.rem).toLocaleDateString()}</span>` : ''}
+                                ${note.tags.map(t => `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 px-3 py-1 rounded-lg font-black uppercase tracking-widest">#${t}</span>`).join('')}
+                                ${note.rem ? `<span class="text-[9px] bg-indigo-50 text-indigo-500 px-3 py-1 rounded-lg font-black uppercase tracking-widest"><i class="fa-solid fa-clock mr-1"></i>${new Date(note.rem).toLocaleDateString()}</span>` : ''}
                             </div>
                         </div>`;
                     grid.appendChild(card);
@@ -242,8 +243,9 @@
             }
 
             window.toggleSidebar = function() {
-                document.body.classList.toggle('sidebar-open');
-                document.body.classList.toggle('sidebar-closed');
+                const body = document.body;
+                body.classList.toggle('sidebar-open');
+                body.classList.toggle('sidebar-closed');
             };
 
             window.setViewContext = function(c) {
@@ -252,7 +254,6 @@
                 const activeBtn = document.getElementById(`ctx-${c}`) || [...document.querySelectorAll('.sidebar-link')].find(btn => btn.innerText.includes(c));
                 if (activeBtn) activeBtn.classList.add('active');
                 if (window.innerWidth <= 1024) document.body.classList.remove('sidebar-open'); 
-                document.getElementById('binHeader').style.display = (c === 'bin') ? 'flex' : 'none';
                 renderUI();
             };
 
@@ -273,12 +274,12 @@
             window.exportNotePDF = function(id) {
                 const source = notes.find(n => n.id === id) || bin.find(n => n.id === id);
                 const win = window.open('', '_blank');
-                win.document.write('<html><head><style>body { font-family: sans-serif; padding: 40px; color: #1e293b; max-width: 800px; margin: 0 auto; } h1 { color: #4f46e5; border-bottom: 3px solid #f1f5f9; padding-bottom: 10px; font-weight: 800; font-size: 32px; } .meta { color: #94a3b8; font-size: 11px; text-transform: uppercase; margin-bottom: 30px; } .content { font-size: 17px; line-height: 1.8; white-space: pre-wrap; color: #334155; } img { width: 100%; border-radius: 20px; margin-top: 30px; border: 1px solid #e2e8f0; }</style></head><body><h1>'+source.title+'</h1><p class="meta">Exported from CloudNote | '+new Date().toLocaleString()+'</p><div class="content">'+source.content+'</div>'+(source.img ? '<img src="'+source.img+'">' : '')+(source.sketch ? '<img src="'+source.sketch+'">' : '')+'<script>window.onload=function(){window.print();setTimeout(window.close, 500);}<\/script></body></html>');
+                win.document.write('<html><head><style>body { font-family: Inter, sans-serif; padding: 50px; color: #1e293b; max-width: 800px; margin: 0 auto; } h1 { color: #4f46e5; border-bottom: 3px solid #f1f5f9; padding-bottom: 15px; font-weight: 800; font-size: 32px; } .content { font-size: 17px; line-height: 1.8; white-space: pre-wrap; color: #334155; } img { width: 100%; border-radius: 20px; margin-top: 30px; border: 1px solid #e2e8f0; }</style></head><body><h1>'+source.title+'</h1><p class="meta">Exported from CloudNote | '+new Date().toLocaleString()+'</p><div class="content">'+source.content+'</div>'+(source.img ? '<img src="'+source.img+'">' : '')+(source.sketch ? '<img src="'+source.sketch+'">' : '')+'<script>window.onload=function(){window.print();setTimeout(window.close, 500);}<\/script></body></html>');
                 win.document.close();
             };
 
             window.exportCurrentToPDF = function() {
-                const n = { title: document.getElementById('noteTitle').value || "Current Session", content: document.getElementById('noteContent').value, img: selectedImg, sketch: !document.getElementById('sketchArea').classList.contains('hidden') ? canvas.toDataURL() : null, tags: [] };
+                const n = { title: document.getElementById('noteTitle').value || "Current", content: document.getElementById('noteContent').value, img: selectedImg, sketch: !document.getElementById('sketchArea').classList.contains('hidden') ? canvas.toDataURL() : null, tags: [] };
                 exportNotePDF({id:0, ...n});
             };
 
@@ -296,10 +297,10 @@
             };
 
             window.expandCreator = function() { document.getElementById('collapsedInput').classList.add('hidden'); document.getElementById('expandedInput').classList.remove('hidden'); };
-            window.closeCreator = function() { editingId = null; document.getElementById('saveBtn').innerText = "Save"; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; clearCanvas(); selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); if(document.body.classList.contains('focus-active')) toggleFocusMode(); };
-            window.toggleDarkMode = function() { document.documentElement.classList.toggle('dark'); localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'; renderApp(); toggleSettings(); };
+            window.closeCreator = function() { editingId = null; document.getElementById('saveBtn').innerText = "Save"; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; clearCanvas(); selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); };
+            window.toggleDarkMode = function() { document.documentElement.classList.toggle('dark'); localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'; renderUI(); };
             window.toggleSettings = function() { document.getElementById('settingsDropdown').classList.toggle('hidden-scale'); };
-            window.toggleView = function() { isGrid = !isGrid; renderApp(); toggleSettings(); };
+            window.toggleView = function() { isGrid = !isGrid; renderUI(); toggleSettings(); };
             window.toggleFocusMode = function() { document.body.classList.toggle('focus-active'); };
             window.toggleSketch = function() { document.getElementById('sketchArea').classList.toggle('hidden'); };
             window.clearCanvas = function() { ctx.clearRect(0,0,canvas.width,canvas.height); };
@@ -309,11 +310,11 @@
             window.restore = function(id) { const b = bin.find(x => x.id === id); const tx = db.transaction(["notes","bin"], "readwrite"); tx.objectStore("notes").put(b); tx.objectStore("bin").delete(id); renderApp(); };
             window.emptyBin = function() { if(confirm("Empty bin permanently?")){ const tx = db.transaction("bin", "readwrite"); tx.objectStore("bin").clear(); renderApp(); } };
             window.updateStorage = function() { if(navigator.storage && navigator.storage.estimate) { navigator.storage.estimate().then(e => { document.getElementById('storageText').innerText = (e.usage/1024/1024).toFixed(1)+'MB used'; document.getElementById('storageBar').style.width = (e.usage/(1024*1024*1024*10)*100)+'%'; }); } };
-            window.renderSidebarTags = function() { const tags = [...new Set(notes.flatMap(n => n.tags))]; document.getElementById('sidebarTags').innerHTML = tags.map(t => `<button onclick="setViewContext('${t}')" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold"># ${t}</button>`).join(''); };
+            window.renderSidebarTags = function() { const tags = [...new Set(notes.flatMap(n => n.tags))]; document.getElementById('sidebarTags').innerHTML = tags.map(t => `<button onclick="setViewContext('${t}')" class="sidebar-link"><i class="fa-solid fa-hashtag text-[10px]"></i> ${t}</button>`).join(''); };
             window.triggerAutoSave = function() { clearTimeout(autoSaveT); autoSaveT = setTimeout(() => { if(editingId) saveNote(true); document.getElementById('autoSaveMsg').style.opacity = 1; setTimeout(()=>document.getElementById('autoSaveMsg').style.opacity=0, 1500); }, 3000); };
             window.generateSyncCode = function() { prompt("COPY SYNC CODE:", btoa(JSON.stringify({notes, bin}))); toggleSettings(); };
             window.importSyncCode = function() { const c = prompt("PASTE SYNC CODE:"); if(c) { try { const d = JSON.parse(atob(c)); const txN = db.transaction("notes", "readwrite"); d.notes.forEach(n => txN.objectStore("notes").put(n)); location.reload(); } catch(e) { alert("Error"); } } };
-            window.hardReset = function() { if(confirm("Permanently wipe everything?")) { indexedDB.deleteDatabase("CloudWorkspaceV8"); location.reload(); } };
+            window.hardReset = function() { if(confirm("Wipe all data?")) { indexedDB.deleteDatabase("CloudWorkspaceV9"); location.reload(); } };
             window.startVoice = function() { const S = window.SpeechRecognition || window.webkitSpeechRecognition; if(!S) return; const r = new S(); document.getElementById('micBtn').classList.add('text-rose-500','animate-pulse'); r.onresult=(e)=>{document.getElementById('noteContent').value+=" "+e.results[0][0].transcript; document.getElementById('micBtn').classList.remove('text-rose-500','animate-pulse');}; r.start(); };
 
             const canvas = document.getElementById('canvasBoard'); const ctx = canvas.getContext('2d');
