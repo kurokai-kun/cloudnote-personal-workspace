@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudNote | Personal Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: all 0.3s ease; scroll-behavior: smooth; overflow-x: hidden; }
+        
+        /* Layout Grid */
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; align-items: start; }
+        .notes-list { display: flex; flex-direction: column; max-width: 850px; margin: 0 auto; gap: 1.25rem; }
+        
+        .note-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
+        .note-item:hover { transform: translateY(-5px); box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.15); border-color: #6366f1; }
+        
+        .sidebar-link { transition: all 0.2s ease; border-radius: 1rem; margin-bottom: 4px; color: #64748b; }
+        .sidebar-link.active { background: #6366f1 !important; color: white !important; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4); }
+
+        /* Focus Mode */
+        body.focus-active { overflow: hidden; }
+        body.focus-active #sidebar, body.focus-active nav { transform: translateY(-120%); opacity: 0; pointer-events: none; }
+        body.focus-active #mainContainer { padding: 2rem !important; margin-top: 0 !important; }
+        body.focus-active #noteCreator { max-width: 1000px; height: 88vh; z-index: 100; border-radius: 2.5rem; }
+        body.focus-active #notesDisplay { display: none; }
+
+        canvas { touch-action: none; cursor: crosshair; background: #ffffff; border-radius: 1.25rem; width: 100%; border: 1px solid #e2e8f0; }
+        .dark canvas { background: #1e293b; border-color: #334155; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        #settingsDropdown { transform-origin: top right; transition: all 0.2s ease; z-index: 3000; }
+        .hidden-scale { transform: scale(0.95); opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-[#0f172a] min-h-screen text-slate-900 dark:text-slate-100">
+
+    <nav class="bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-xl border-b dark:border-slate-800 h-16 fixed top-0 w-full z-[1000] px-6 flex items-center justify-between transition-all duration-500">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"><i class="fa-solid fa-bars-staggered"></i></button>
+            <h1 class="text-xl font-extrabold flex items-center gap-2">
+                <div class="bg-indigo-600 p-1.5 rounded-xl text-white shadow-lg"><i class="fa-solid fa-cloud"></i></div>
+                <span class="tracking-tighter hidden sm:block">CloudNote</span>
+            </h1>
+        </div>
+
+        <div class="flex-grow max-w-xl mx-8 relative hidden md:block">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchInput" oninput="renderApp()" placeholder="Search project, content, or tags..." class="w-full bg-slate-100 dark:bg-slate-800 rounded-2xl py-2.5 pl-12 pr-4 outline-none border-none focus:ring-2 ring-indigo-500/50 transition-all">
+        </div>
+
+        <div class="relative">
+            <button onclick="toggleSettings()" class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 transition-all"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            <div id="settingsDropdown" class="hidden-scale absolute right-0 mt-4 w-72 bg-white dark:bg-[#1e293b] rounded-3xl shadow-2xl border dark:border-slate-700 overflow-hidden">
+                <div class="p-4 space-y-3">
+                    <button onclick="toggleDarkMode()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"><i class="fa-solid fa-moon text-indigo-500"></i> Appearance Mode</button>
+                    <button onclick="toggleView()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"><i class="fa-solid fa-table-cells-large text-indigo-500"></i> Change Layout</button>
+                    <hr class="dark:border-slate-700">
+                    <button onclick="exportBackup()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 rounded-xl"><i class="fa-solid fa-download"></i> Save Backup (JSON)</button>
+                    <button onclick="generateSyncCode()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-indigo-50 text-indigo-600 font-bold"><i class="fa-solid fa-share-nodes"></i> Get Cloud Sync Code</button>
+                    <button onclick="importSyncCode()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-emerald-50 text-emerald-600 font-bold"><i class="fa-solid fa-file-import"></i> Restore from Code</button>
+                    <button onclick="hardReset()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2 text-rose-500 font-bold"><i class="fa-solid fa-radiation"></i> Full Reset</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <aside id="sidebar" class="fixed left-0 top-16 h-full w-64 bg-white dark:bg-[#1e293b] border-r dark:border-slate-800 z-40 transition-all duration-500 overflow-y-auto no-scrollbar">
+        <div class="p-4 space-y-6">
+            <div class="space-y-1">
+                <button onclick="setViewContext('all')" id="ctx-all" class="sidebar-link active w-full flex items-center gap-3 px-4 py-3 text-sm font-bold"><i class="fa-solid fa-note-sticky"></i> All Notes</button>
+                <button onclick="setViewContext('reminders')" id="ctx-reminders" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-sm font-bold"><i class="fa-solid fa-bell"></i> Reminders</button>
+                <button onclick="setViewContext('media')" id="ctx-media" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-sm font-bold"><i class="fa-solid fa-image"></i> Media Only</button>
+                <button onclick="setViewContext('bin')" id="ctx-bin" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 text-sm font-bold"><i class="fa-solid fa-trash-can"></i> Trash Bin</button>
+            </div>
+            <div>
+                <p class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Labels</p>
+                <div id="sidebarTags" class="space-y-1"></div>
+            </div>
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl mt-8 border dark:border-slate-700">
+                <p class="text-[9px] font-bold text-indigo-500 uppercase mb-1 text-center">IndexedDB Health (10GB)</p>
+                <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mb-2"><div id="storageBar" class="bg-indigo-500 h-1 rounded-full" style="width: 2%"></div></div>
+                <p id="storageText" class="text-[9px] text-slate-500 text-center">Connecting...</p>
+            </div>
+        </div>
+    </aside>
+
+    <main id="mainContainer" class="pt-24 pl-64 pr-6 transition-all duration-500">
+        
+        <div id="noteCreator" class="max-w-xl mx-auto bg-white dark:bg-[#1e293b] rounded-3xl shadow-xl border dark:border-slate-800 mb-12 overflow-hidden transition-all duration-500">
+            <div id="collapsedInput" onclick="expandCreator()" class="px-8 py-5 flex justify-between items-center cursor-text group">
+                <span class="text-slate-400 font-medium group-hover:text-indigo-500 transition-colors">Start a new note...</span>
+                <div class="flex gap-4 text-slate-300"><i class="fa-solid fa-paintbrush"></i><i class="fa-solid fa-image"></i></div>
+            </div>
+
+            <div id="expandedInput" class="hidden p-8 animate-in fade-in duration-300">
+                <div class="flex items-center gap-4 mb-4">
+                    <input type="text" id="noteTitle" placeholder="Project Title" class="flex-grow font-bold text-2xl outline-none bg-transparent dark:text-white placeholder-slate-300">
+                    <button onclick="toggleFocusMode()" id="focusBtn" class="text-slate-400 hover:text-indigo-500 transition-colors" title="Focus Mode"><i class="fa-solid fa-expand"></i></button>
+                </div>
+                <textarea id="noteContent" oninput="triggerAutoSave()" placeholder="Take a note..." class="w-full outline-none bg-transparent dark:text-slate-300 min-h-[160px] resize-none text-lg leading-relaxed"></textarea>
+                
+                <div id="sketchArea" class="hidden mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl relative border dark:border-slate-800">
+                    <div class="flex gap-4 items-center mb-4">
+                        <button onclick="setTool('pencil')" id="t-pencil" class="p-2.5 rounded-xl bg-indigo-600 text-white shadow-lg"><i class="fa-solid fa-pencil"></i></button>
+                        <button onclick="setTool('eraser')" id="t-eraser" class="p-2.5 rounded-xl bg-white dark:bg-slate-800 border dark:border-slate-700 shadow-sm"><i class="fa-solid fa-eraser"></i></button>
+                        <input type="range" id="penWidth" min="1" max="40" value="4" class="w-32 accent-indigo-500">
+                        <button onclick="clearCanvas()" class="ml-auto text-xs text-rose-500 font-bold uppercase tracking-widest hover:underline">Clear</button>
+                    </div>
+                    <canvas id="canvasBoard" width="850" height="400"></canvas>
+                </div>
+
+                <div id="previewContainer" class="hidden mb-4 relative inline-block">
+                    <img id="imgPrev" src="" class="max-h-56 rounded-2xl shadow-xl border-4 border-white dark:border-slate-700">
+                    <button onclick="selectedImg=''; document.getElementById('previewContainer').classList.add('hidden')" class="absolute -top-3 -right-3 bg-rose-500 text-white w-8 h-8 rounded-full shadow-lg">×</button>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-between items-center pt-8 border-t dark:border-slate-800 gap-6">
+                    <div class="flex gap-6 items-center text-slate-400 text-xl">
+                        <button onclick="toggleSketch()" title="Sketch"><i class="fa-solid fa-paintbrush"></i></button>
+                        <button onclick="startVoice()" id="micBtn" title="Voice"><i class="fa-solid fa-microphone"></i></button>
+                        <label class="cursor-pointer" title="Image"><i class="fa-solid fa-image"></i><input type="file" accept="image/*" class="hidden" onchange="handleImg(event)"></label>
+                        <button onclick="toggleRem()" title="Reminder"><i class="fa-solid fa-bell"></i></button>
+                        <button onclick="exportCurrentToPDF()" title="PDF"><i class="fa-solid fa-file-pdf"></i></button>
+                        <input type="text" id="noteTags" placeholder="#tag" class="text-xs bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full outline-none w-24 border dark:border-slate-700">
+                    </div>
+                    <div class="flex gap-3">
+                        <span id="autoSaveMsg" class="text-[10px] text-emerald-500 font-black self-center opacity-0 transition-opacity uppercase tracking-widest">Saved</span>
+                        <button onclick="closeCreator()" class="px-6 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 rounded-2xl transition-all">Cancel</button>
+                        <button onclick="saveNote()" id="saveBtn" class="px-10 py-2.5 bg-indigo-600 text-white font-bold rounded-2xl shadow-xl hover:bg-indigo-700 active:scale-95 transition-all">Save Note</button>
+                    </div>
+                </div>
+                <div id="remBox" class="hidden mt-6 pt-6 border-t dark:border-slate-800">
+                    <input type="datetime-local" id="noteRem" class="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl w-full outline-none text-sm dark:text-white border dark:border-slate-700">
+                </div>
+            </div>
+        </div>
+
+        <div id="binHeader" class="hidden max-w-6xl mx-auto mb-8 p-5 bg-rose-50 dark:bg-rose-900/10 rounded-3xl border border-rose-100 flex justify-between items-center text-rose-600 font-semibold shadow-sm">
+            <span class="text-sm italic">Items in Trash are archived for safety.</span>
+            <button onclick="emptyBin()" class="text-xs font-black uppercase tracking-widest hover:underline">Empty Bin</button>
+        </div>
+        
+        <div id="notesDisplay" class="notes-grid max-w-6xl mx-auto pb-24 transition-all duration-700"></div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let db, notes = [], bin = [], viewCtx = 'all', isGrid = true, selectedImg = "", editingId = null, autoSaveT = null;
+            let drawTool = 'pencil', isDrawing = false;
+
+            const dbReq = indexedDB.open("CloudWorkspaceV5", 1);
+            dbReq.onupgradeneeded = e => {
+                db = e.target.result;
+                db.createObjectStore("notes", { keyPath: "id" });
+                db.createObjectStore("bin", { keyPath: "id" });
+            };
+            dbReq.onsuccess = e => { db = e.target.result; renderApp(); updateStorage(); };
+
+            window.renderApp = async function() {
+                if(!db) return;
+                const txNotes = db.transaction("notes", "readonly").objectStore("notes").getAll();
+                const txBin = db.transaction("bin", "readonly").objectStore("bin").getAll();
+                txNotes.onsuccess = () => {
+                    notes = txNotes.result;
+                    txBin.onsuccess = () => { bin = txBin.result; renderUI(); };
+                };
+            };
+
+            function renderUI() {
+                renderSidebarTags();
+                const grid = document.getElementById('notesDisplay');
+                const search = document.getElementById('searchInput').value.toLowerCase();
+                grid.innerHTML = "";
+                grid.className = isGrid ? 'notes-grid max-w-6xl mx-auto' : 'notes-list max-w-6xl mx-auto';
+                
+                let source = (viewCtx === 'bin') ? bin : notes;
+                
+                source.filter(n => {
+                    const textMatch = n.title.toLowerCase().includes(search) || n.content.toLowerCase().includes(search);
+                    if (viewCtx === 'all' || viewCtx === 'bin') return textMatch;
+                    if (viewCtx === 'reminders') return textMatch && n.rem;
+                    if (viewCtx === 'media') return textMatch && (n.img || n.sketch);
+                    return textMatch && n.tags.includes(viewCtx);
+                }).sort((a,b) => b.id - a.id).forEach(note => {
+                    const card = document.createElement('div');
+                    card.className = `note-item bg-white dark:bg-[#1e293b] rounded-3xl shadow-sm border dark:border-slate-800 overflow-hidden group`;
+                    card.innerHTML = `
+                        ${note.img ? `<img src="${note.img}" class="w-full object-cover max-h-80 border-b dark:border-slate-800">` : ''}
+                        ${note.sketch ? `<img src="${note.sketch}" class="w-full bg-white dark:bg-slate-900 border-b dark:border-slate-800">` : ''}
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-lg leading-tight line-clamp-2">${note.title}</h3>
+                                <div class="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+                                    <button onclick="exportNotePDF(${note.id})" class="p-2 text-rose-500 hover:scale-110 transition"><i class="fa-solid fa-file-pdf"></i></button>
+                                    ${viewCtx === 'bin' ? 
+                                        `<button onclick="restore(${note.id})" class="p-2 text-indigo-500"><i class="fa-solid fa-rotate-left"></i></button>` :
+                                        `<button onclick="editNote(${note.id})" class="p-2 text-indigo-400"><i class="fa-solid fa-pencil text-sm"></i></button>
+                                         <button onclick="trash(${note.id})" class="p-2 text-slate-400 hover:text-rose-500"><i class="fa-solid fa-trash-can text-sm"></i></button>`
+                                    }
+                                </div>
+                            </div>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 whitespace-pre-wrap leading-relaxed line-clamp-6">${note.content}</p>
+                            <div class="flex flex-wrap gap-2 mt-5">
+                                ${note.tags.map(t => `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-400 px-3 py-1 rounded-full font-bold">#${t}</span>`).join('')}
+                                ${note.rem ? `<span class="text-[9px] bg-indigo-50 text-indigo-500 px-3 py-1 rounded-full font-black uppercase"><i class="fa-solid fa-clock mr-1"></i>${new Date(note.rem).toLocaleDateString()}</span>` : ''}
+                            </div>
+                        </div>`;
+                    grid.appendChild(card);
+                });
+            }
+
+            window.setViewContext = function(c) {
+                viewCtx = c;
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                const activeBtn = document.getElementById(`ctx-${c}`) || [...document.querySelectorAll('.sidebar-link')].find(btn => btn.innerText.includes(c));
+                if (activeBtn) activeBtn.classList.add('active');
+                document.getElementById('binHeader').style.display = (c === 'bin') ? 'flex' : 'none';
+                renderUI();
+            };
+
+            window.saveNote = async function(isAuto = false) {
+                const title = document.getElementById('noteTitle').value || "Untitled Note";
+                const content = document.getElementById('noteContent').value;
+                const sketch = !document.getElementById('sketchArea').classList.contains('hidden') ? canvas.toDataURL() : null;
+                const rem = document.getElementById('noteRem').value;
+                const tags = document.getElementById('noteTags').value.split(',').map(t => t.trim().replace('#','')).filter(t => t);
+
+                if (!content && !sketch && !selectedImg) return closeCreator();
+
+                const noteData = { id: editingId || Date.now(), title, content, sketch, tags, rem, img: selectedImg, date: new Date().toLocaleDateString() };
+                const tx = db.transaction("notes", "readwrite");
+                tx.objectStore("notes").put(noteData);
+                if(!isAuto) { renderApp(); closeCreator(); }
+                updateStorage();
+            };
+
+            window.exportNotePDF = function(id) {
+                const source = notes.find(n => n.id === id) || bin.find(n => n.id === id);
+                const win = window.open('', '_blank');
+                win.document.write('<html><head><style>body { font-family: Inter, sans-serif; padding: 50px; color: #1e293b; max-width: 800px; margin: 0 auto; } h1 { color: #4f46e5; border-bottom: 3px solid #f1f5f9; padding-bottom: 15px; font-weight: 800; font-size: 32px; } .meta { color: #94a3b8; font-size: 11px; text-transform: uppercase; margin-bottom: 30px; } .content { font-size: 17px; line-height: 1.8; white-space: pre-wrap; color: #334155; } img { width: 100%; border-radius: 20px; margin-top: 30px; border: 1px solid #e2e8f0; }</style></head><body><h1>'+source.title+'</h1><p class="meta">Exported | '+new Date().toLocaleString()+'</p><div class="content">'+source.content+'</div>'+(source.img ? '<img src="'+source.img+'">' : '')+(source.sketch ? '<img src="'+source.sketch+'">' : '')+'<script>window.onload=function(){window.print();setTimeout(window.close,500);}<\/script></body></html>');
+                win.document.close();
+            };
+
+            window.exportCurrentToPDF = function() {
+                const n = { title: document.getElementById('noteTitle').value || "Current Session", content: document.getElementById('noteContent').value, img: selectedImg, sketch: !document.getElementById('sketchArea').classList.contains('hidden') ? canvas.toDataURL() : null, tags: [] };
+                exportNotePDF({id:0, ...n});
+            };
+
+            window.editNote = function(id) {
+                const n = notes.find(x => x.id === id);
+                editingId = id; expandCreator(); window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.getElementById('noteTitle').value = n.title;
+                document.getElementById('noteContent').value = n.content;
+                document.getElementById('noteTags').value = n.tags.join(', ');
+                document.getElementById('noteRem').value = n.rem || "";
+                document.getElementById('saveBtn').innerText = "Update Workspace";
+                if(n.img) { selectedImg = n.img; document.getElementById('imgPrev').src = n.img; document.getElementById('previewContainer').classList.remove('hidden'); }
+                if(n.sketch) { document.getElementById('sketchArea').classList.remove('hidden'); const i = new Image(); i.onload = () => ctx.drawImage(i,0,0); i.src = n.sketch; }
+            };
+
+            window.triggerAutoSave = function() { clearTimeout(autoSaveT); autoSaveT = setTimeout(() => { if(editingId) saveNote(true); document.getElementById('autoSaveMsg').style.opacity = 1; setTimeout(()=>document.getElementById('autoSaveMsg').style.opacity=0, 2000); }, 3000); };
+            window.expandCreator = function() { document.getElementById('collapsedInput').classList.add('hidden'); document.getElementById('expandedInput').classList.remove('hidden'); };
+            window.closeCreator = function() { editingId = null; document.getElementById('saveBtn').innerText = "Save"; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; clearCanvas(); selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); if(document.body.classList.contains('focus-active')) toggleFocusMode(); };
+            window.toggleDarkMode = function() { document.documentElement.classList.toggle('dark'); localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'; toggleSettings(); renderApp(); };
+            window.toggleSettings = function() { document.getElementById('settingsDropdown').classList.toggle('hidden-scale'); };
+            window.toggleView = function() { isGrid = !isGrid; renderApp(); toggleSettings(); };
+            window.toggleSidebar = function() { const s = document.getElementById('sidebar'); s.style.left = s.style.left === '-256px' ? '0' : '-256px'; };
+            window.toggleFocusMode = function() { document.body.classList.toggle('focus-active'); };
+            window.toggleSketch = function() { document.getElementById('sketchArea').classList.toggle('hidden'); };
+            window.clearCanvas = function() { ctx.clearRect(0,0,canvas.width,canvas.height); };
+            window.toggleRem = function() { document.getElementById('remBox').classList.toggle('hidden'); };
+            window.handleImg = function(e) { const r = new FileReader(); r.onload = v => { selectedImg = v.target.result; document.getElementById('imgPrev').src = v.target.result; document.getElementById('previewContainer').classList.remove('hidden'); }; r.readAsDataURL(e.target.files[0]); };
+            window.trash = function(id) { const n = notes.find(x => x.id === id); const tx = db.transaction(["notes","bin"], "readwrite"); tx.objectStore("bin").put(n); tx.objectStore("notes").delete(id); renderApp(); };
+            window.restore = function(id) { const b = bin.find(x => x.id === id); const tx = db.transaction(["notes","bin"], "readwrite"); tx.objectStore("notes").put(b); tx.objectStore("bin").delete(id); renderApp(); };
+            window.emptyBin = function() { if(confirm("Permanently wipe?")) { const tx = db.transaction("bin", "readwrite"); tx.objectStore("bin").clear(); renderApp(); } };
+            window.exportBackup = function() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({notes, bin})])); a.download='CloudNote_Backup.json'; a.click(); toggleSettings(); };
+            window.generateSyncCode = function() { prompt("COPY SYNC CODE:", btoa(JSON.stringify({notes, bin}))); toggleSettings(); };
+            window.importSyncCode = function() { const c = prompt("PASTE SYNC CODE:"); if(c) { try { const d = JSON.parse(atob(c)); const txN = db.transaction("notes", "readwrite"); d.notes.forEach(n => txN.objectStore("notes").put(n)); location.reload(); } catch(e) { alert("Error"); } } };
+            window.hardReset = function() { if(confirm("Wipe 10GB Data?")) { indexedDB.deleteDatabase("CloudWorkspaceV5"); location.reload(); } };
+            window.updateStorage = function() { if(navigator.storage && navigator.storage.estimate) { navigator.storage.estimate().then(e => { document.getElementById('storageText').innerText = (e.usage/1024/1024).toFixed(1)+'MB Used'; document.getElementById('storageBar').style.width = (e.usage/(1024*1024*1024*10)*100)+'%'; }); } };
+            window.renderSidebarTags = function() { const tags = [...new Set(notes.flatMap(n => n.tags))]; document.getElementById('sidebarTags').innerHTML = tags.map(t => `<button onclick="setViewContext('${t}')" class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold"># ${t}</button>`).join(''); };
+            window.startVoice = function() { const S = window.SpeechRecognition || window.webkitSpeechRecognition; if(!S) return; const r = new S(); document.getElementById('micBtn').classList.add('text-rose-500','animate-pulse'); r.onresult=(e)=>{document.getElementById('noteContent').value+=" "+e.results[0][0].transcript; document.getElementById('micBtn').classList.remove('text-rose-500','animate-pulse');}; r.start(); };
+
+            const canvas = document.getElementById('canvasBoard'); const ctx = canvas.getContext('2d');
+            const getP = e => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || e.touches[0].clientX) - r.left, y: (e.clientY || e.touches[0].clientY) - r.top }; };
+            canvas.addEventListener('mousedown', e => { isDrawing = true; ctx.beginPath(); const p = getP(e); ctx.moveTo(p.x, p.y); });
+            canvas.addEventListener('mousemove', e => { if(!isDrawing) return; const p = getP(e); ctx.lineWidth = document.getElementById('penWidth').value; ctx.lineCap = 'round'; if(drawTool === 'eraser') ctx.globalCompositeOperation = 'destination-out'; else { ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = '#6366f1'; } ctx.lineTo(p.x, p.y); ctx.stroke(); });
+            window.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('touchstart', e => { isDrawing = true; const p = getP(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
+            canvas.addEventListener('touchmove', e => { if(isDrawing) { const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } e.preventDefault(); }, {passive: false});
+            window.setTool = function(t) { drawTool = t; document.querySelectorAll('#sketchArea button').forEach(b => b.classList.remove('bg-indigo-600','text-white')); document.getElementById(`t-${t}`).classList.add('bg-indigo-600','text-white'); };
+        });
+    </script>
+</body>
+</html>
