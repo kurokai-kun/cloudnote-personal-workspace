@@ -11,6 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; overflow-x: hidden; }
         
+        /* SIDEBAR VERTICAL LOCK */
         #sidebar { 
             width: 280px; display: flex !important; flex-direction: column !important; 
             transition: transform 0.3s ease; background: white; border-right: 1px solid #e2e8f0;
@@ -31,7 +32,7 @@
 
         .sidebar-link { 
             display: flex !important; align-items: center !important; gap: 12px !important; 
-            width: 100% !important; padding: 12px 16px !important; border-radius: 14px !important;
+            width: 100% !important; padding: 12px 16px !important; border-radius: 12px !important;
             font-weight: 700 !important; margin-bottom: 4px !important; color: #64748b; transition: all 0.2s;
         }
         .sidebar-link.active { background: #6366f1 !important; color: white !important; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
@@ -61,7 +62,7 @@
             </div>
         </div>
         <div class="flex-grow max-w-xl mx-4 relative hidden sm:block">
-            <input type="text" id="searchInput" oninput="window.renderUI()" placeholder="Search project..." class="w-full bg-slate-100 dark:bg-slate-800 rounded-full py-2 pl-10 pr-4 outline-none border-none dark:text-white focus:ring-2 ring-indigo-500/20">
+            <input type="text" id="searchInput" oninput="window.renderUI()" placeholder="Search project..." class="w-full bg-slate-100 dark:bg-slate-800 rounded-full py-2 pl-10 pr-4 outline-none border-none dark:text-white">
         </div>
         <button onclick="window.toggleSettings()" class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-full"><i class="fa-solid fa-gear"></i></button>
         
@@ -71,11 +72,11 @@
                 <button onclick="window.exportJSON()" class="text-xs font-bold p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-indigo-500"><i class="fa-solid fa-download mb-1 block"></i> Backup</button>
             </div>
             <div class="space-y-2 border-t pt-4 dark:border-slate-700">
-                <p class="text-[10px] font-black text-slate-400 uppercase px-1">Cloud Sync Engine</p>
-                <input type="password" id="syncPass" placeholder="Private Sync Key" class="w-full text-xs p-3 rounded-xl bg-gray-50 dark:bg-slate-900 border dark:border-slate-700 outline-none">
+                <p class="text-[10px] font-black text-slate-400 uppercase px-1">Sync Engine (Password Protected)</p>
+                <input type="password" id="syncPass" placeholder="Private Sync Key" class="w-full text-xs p-3 rounded-xl bg-gray-50 dark:bg-slate-900 border dark:border-slate-700 outline-none dark:text-white">
                 <div class="flex gap-2">
-                    <button onclick="window.cloudAction('push')" class="flex-1 bg-indigo-600 text-white text-[10px] font-bold py-2.5 rounded-xl">Push</button>
-                    <button onclick="window.cloudAction('pull')" class="flex-1 bg-slate-200 dark:bg-slate-700 text-[10px] font-bold py-2.5 rounded-xl">Pull</button>
+                    <button onclick="window.cloudAction('push')" class="flex-1 bg-indigo-600 text-white text-[10px] font-bold py-2.5 rounded-xl">Push Code</button>
+                    <button onclick="window.cloudAction('pull')" class="flex-1 bg-slate-200 dark:bg-slate-700 text-[10px] font-bold py-2.5 rounded-xl">Pull Sync</button>
                 </div>
             </div>
             <button onclick="window.hardReset()" class="w-full text-xs text-rose-500 font-bold p-2 hover:bg-rose-50 rounded-xl transition-all">Wipe All Data</button>
@@ -118,7 +119,7 @@
 
                     <div class="flex justify-between items-center pt-8 border-t dark:border-slate-800">
                         <div class="flex gap-6 items-center text-slate-400 text-xl">
-                            <label class="cursor-pointer" title="Add Image"><i class="fa-solid fa-image hover:text-indigo-500"></i><input type="file" accept="image/*" class="hidden" onchange="window.handleImg(event)"></label>
+                            <label class="cursor-pointer" title="Add Image"><i class="fa-solid fa-image hover:text-indigo-500"></i><input type="file" id="fileInput" accept="image/*" class="hidden" onchange="window.handleImg(event)"></label>
                         </div>
                         <div class="flex gap-3">
                             <button onclick="window.closeCreator()" class="px-5 text-sm font-semibold text-slate-500">Cancel</button>
@@ -131,7 +132,7 @@
 
         <div id="binHeader" class="hidden max-w-2xl mx-auto mb-10 p-6 bg-rose-50 dark:bg-rose-950/20 rounded-3xl border border-rose-100 flex justify-between items-center text-rose-600 font-bold">
             <span class="text-xs uppercase tracking-widest font-black italic">Bin vault storage</span>
-            <button onclick="window.emptyBin()" class="bg-rose-600 text-white px-6 py-2 rounded-xl text-xs font-black shadow-lg">Empty All</button>
+            <button onclick="window.emptyBin()" class="bg-rose-600 text-white px-6 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-rose-700 transition-all">Empty Bin</button>
         </div>
 
         <div id="notesDisplay" class="notes-grid max-w-6xl mx-auto pb-24"></div>
@@ -180,6 +181,7 @@
             });
         };
 
+        // Note Save logic
         window.saveNote = function() {
             const title = document.getElementById('noteTitle').value || "Untitled";
             const content = document.getElementById('noteContent').value;
@@ -190,11 +192,24 @@
             tx.oncomplete = () => { window.closeCreator(); window.renderApp(); window.updateStorage(); };
         };
 
+        // IMAGE BUG FIX: Reset the input so same file can be re-selected
         window.removeImg = function() {
             selectedImg = "";
             document.getElementById('previewContainer').classList.add('hidden');
+            document.getElementById('fileInput').value = ""; 
         };
 
+        window.handleImg = function(e) { 
+            const r = new FileReader(); 
+            r.onload = v => { 
+                selectedImg = v.target.result; 
+                document.getElementById('imgPrev').src = v.target.result; 
+                document.getElementById('previewContainer').classList.remove('hidden'); 
+            }; 
+            if(e.target.files[0]) r.readAsDataURL(e.target.files[0]); 
+        };
+
+        // Edit logic
         window.editNote = function(id) {
             const n = notes.find(x => x.id === id); if (!n) return;
             editingId = id; window.expandCreator();
@@ -204,6 +219,7 @@
             window.scrollTo({top:0, behavior:'smooth'});
         };
 
+        // Trash routing fix
         window.trash = function(id) { 
             const n = notes.find(x => x.id === id); 
             const tx = db.transaction(["notes","bin"], "readwrite");
@@ -212,15 +228,17 @@
             tx.oncomplete = window.renderApp; 
         };
 
+        // Cloud Sync logic
         window.cloudAction = function(type) {
             const pass = document.getElementById('syncPass').value; if(!pass) return alert("Key required!");
-            if(type === 'push') prompt("SECURE SYNC CODE:", btoa(JSON.stringify({notes, bin, pass})));
+            if(type === 'push') prompt("YOUR SYNC CODE:", btoa(JSON.stringify({notes, bin, pass})));
             else { const code = prompt("PASTE CODE:"); try { const d = JSON.parse(atob(code)); if(d.pass === pass) { 
                 const txN = db.transaction("notes", "readwrite"); d.notes.forEach(n => txN.objectStore("notes").put(n));
                 const txB = db.transaction("bin", "readwrite"); d.bin.forEach(b => txB.objectStore("bin").put(b));
                 location.reload(); } else alert("Wrong Key!"); } catch(e) { alert("Error!"); } }
         };
 
+        // Utilities
         window.setViewContext = function(c) {
             viewCtx = c;
             document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
@@ -228,14 +246,12 @@
             if (window.innerWidth < 1025) window.toggleSidebar();
             window.renderUI();
         };
-
         window.toggleSidebar = function() { document.body.classList.toggle('sidebar-open'); };
         window.toggleSettings = function() { document.getElementById('settingsDropdown').classList.toggle('hidden-scale'); };
         window.toggleDarkMode = function() { document.documentElement.classList.toggle('dark'); window.renderUI(); };
         window.toggleFocusMode = function() { document.body.classList.toggle('focus-active'); };
         window.expandCreator = function() { document.getElementById('collapsedInput').classList.add('hidden'); document.getElementById('expandedInput').classList.remove('hidden'); };
-        window.closeCreator = function() { editingId = null; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; document.getElementById('noteTitle').value = ""; selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); if(document.body.classList.contains('focus-active')) window.toggleFocusMode(); };
-        window.handleImg = function(e) { const r = new FileReader(); r.onload = v => { selectedImg = v.target.result; document.getElementById('imgPrev').src = v.target.result; document.getElementById('previewContainer').classList.remove('hidden'); }; r.readAsDataURL(e.target.files[0]); };
+        window.closeCreator = function() { editingId = null; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; document.getElementById('noteTitle').value = ""; window.removeImg(); if(document.body.classList.contains('focus-active')) window.toggleFocusMode(); };
         window.restore = function(id) { const b = bin.find(x => x.id === id); const tx = db.transaction(["notes","bin"], "readwrite"); tx.objectStore("notes").put(b); tx.objectStore("bin").delete(id); tx.oncomplete = window.renderApp; };
         window.emptyBin = function() { if(confirm("Empty bin permanently?")) { const tx = db.transaction("bin", "readwrite"); tx.objectStore("bin").clear(); tx.oncomplete = window.renderApp; } };
         window.exportJSON = function() { const blob = new Blob([JSON.stringify({notes, bin})], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='CloudNote_Backup.json'; a.click(); };
