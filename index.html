@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CloudNote | Universal Workspace</title>
+    <title>CloudNote | Personal Workspace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>tailwind.config = { darkMode: 'class' }</script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
         
-        /* THE STACKING FIX: Forces icons to be vertical and never clump */
+        /* STRICT SIDEBAR STACKING */
         #sidebar { 
             width: 280px; 
             display: flex !important; 
             flex-direction: column !important; 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: white;
-            border-right: 1px solid #e2e8f0;
+            transition: transform 0.3s ease;
+            background: #ffffff;
         }
-        .dark #sidebar { background: #1e293b; border-right-color: #334155; }
+        .dark #sidebar { background: #1e293b; }
 
         @media (max-width: 1024px) {
             #sidebar { position: fixed; transform: translateX(-100%); z-index: 2000; height: 100vh; top: 0; padding-top: 5rem; }
@@ -29,23 +28,25 @@
         }
 
         @media (min-width: 1025px) {
-            #sidebar { position: fixed; top: 4rem; height: calc(100vh - 4rem); transform: translateX(0) !important; }
+            #sidebar { position: fixed; top: 4rem; height: calc(100vh - 4rem); transform: translateX(0) !important; border-right: 1px solid #e2e8f0; }
+            .dark #sidebar { border-right-color: #334155; }
             #mainContainer { padding-left: 280px !important; }
-            #mobileOverlay { display: none !important; } /* REMOVES BLUR BLOCKER */
+            #mobileOverlay { display: none !important; } /* NO MORE GHOST BLUR */
         }
 
         .sidebar-link { 
-            display: flex !important; align-items: center !important; gap: 14px !important; 
-            width: 100% !important; padding: 12px 16px !important; border-radius: 14px !important;
-            font-weight: 700 !important; margin-bottom: 6px !important; color: #64748b; transition: all 0.2s;
+            display: flex !important; align-items: center !important; gap: 12px !important; 
+            width: 100% !important; padding: 14px 18px !important; border-radius: 14px !important;
+            font-weight: 700 !important; margin-bottom: 4px !important; color: #64748b; transition: all 0.2s;
         }
         .dark .sidebar-link { color: #94a3b8; }
-        .sidebar-link.active { background: #6366f1 !important; color: white !important; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3); }
+        .sidebar-link.active { background: #6366f1 !important; color: white !important; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4); }
 
-        .note-item { transition: all 0.3s ease; border-radius: 1.5rem; border: 1px solid transparent; overflow: hidden; }
-        .note-item:hover { transform: translateY(-4px); border-color: #6366f1; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 1.5rem; }
+        .note-item { transition: all 0.3s ease; border-radius: 1.5rem; overflow: hidden; border: 1px solid transparent; }
+        .note-item:hover { transform: translateY(-5px); border-color: #6366f1; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         
-        canvas { touch-action: none; cursor: crosshair; background: #fff; border-radius: 1rem; width: 100%; aspect-ratio: 16/9; border: 1px solid #e2e8f0; }
+        canvas { touch-action: none; cursor: crosshair; background: #fff; border-radius: 1.5rem; width: 100%; aspect-ratio: 16/9; border: 1px solid #e2e8f0; }
         .dark canvas { background: #0f172a; border-color: #334155; }
         .hidden-scale { transform: scale(0.95); opacity: 0; pointer-events: none; transition: all 0.2s ease; }
     </style>
@@ -54,46 +55,46 @@
 
     <div id="mobileOverlay" onclick="window.toggleSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1500] hidden"></div>
 
-    <nav class="bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-md border-b dark:border-slate-800 h-16 fixed top-0 w-full z-[2500] px-4 md:px-6 flex items-center justify-between">
+    <nav class="bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-md border-b dark:border-slate-800 h-16 fixed top-0 w-full z-[2500] px-4 md:px-6 flex items-center justify-between transition-all">
         <div class="flex items-center gap-3">
             <button onclick="window.toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl active:scale-90 transition-all">
                 <i class="fa-solid fa-bars-staggered"></i>
             </button>
             <h1 class="text-xl font-black flex items-center gap-2 select-none">
                 <div class="bg-indigo-600 p-1.5 rounded-lg text-white shadow-lg"><i class="fa-solid fa-cloud"></i></div>
-                <span class="tracking-tight hidden xs:block">CloudNote</span>
+                <span class="tracking-tighter hidden xs:block">CloudNote</span>
             </h1>
         </div>
 
         <div class="flex-grow max-w-xl mx-4 relative hidden sm:block">
             <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" id="searchInput" oninput="window.renderUI()" placeholder="Search workspace..." class="w-full bg-slate-100 dark:bg-slate-800 dark:text-white rounded-full py-2 pl-11 pr-4 outline-none border-none focus:ring-2 ring-indigo-500/50">
+            <input type="text" id="searchInput" oninput="window.renderUI()" placeholder="Search project, tags..." class="w-full bg-slate-100 dark:bg-slate-800 dark:text-white rounded-full py-2.5 pl-11 pr-4 outline-none border-none focus:ring-2 ring-indigo-500/50 transition-all">
         </div>
 
         <div class="relative">
             <button onclick="window.toggleSettings()" class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-full hover:rotate-90 transition-all duration-500">
-                <i class="fa-solid fa-ellipsis-vertical dark:text-white"></i>
+                <i class="fa-solid fa-ellipsis-vertical"></i>
             </button>
             <div id="settingsDropdown" class="hidden-scale absolute right-0 mt-4 w-72 bg-white dark:bg-[#1e293b] rounded-3xl shadow-2xl border dark:border-slate-700 overflow-hidden p-4 space-y-4">
                 <div class="space-y-1">
-                    <button onclick="window.toggleDarkMode()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all dark:text-slate-200 font-semibold"><i class="fa-solid fa-moon text-indigo-500"></i> Appearance</button>
-                    <button onclick="window.toggleView()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all dark:text-slate-200 font-semibold"><i class="fa-solid fa-table-cells-large text-indigo-500"></i> Change Layout</button>
+                    <button onclick="window.toggleDarkMode()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all dark:text-slate-200 font-bold"><i class="fa-solid fa-moon text-indigo-500"></i> Appearance</button>
+                    <button onclick="window.toggleView()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all dark:text-slate-200 font-bold"><i class="fa-solid fa-table-cells-large text-indigo-500"></i> Change Layout</button>
                 </div>
                 <hr class="dark:border-slate-700">
                 <div class="space-y-2">
-                    <p class="text-[10px] font-black text-slate-400 uppercase px-2">Privacy & Sync</p>
-                    <input type="password" id="syncPass" placeholder="Sync Password" class="w-full text-xs p-3 rounded-xl bg-gray-50 dark:bg-slate-900 border dark:border-slate-700 outline-none">
+                    <p class="text-[10px] font-black text-slate-400 uppercase px-2">Password Sync</p>
+                    <input type="password" id="syncPass" placeholder="Private Key" class="w-full text-xs p-3 rounded-xl bg-gray-50 dark:bg-slate-900 border dark:border-slate-700 outline-none dark:text-white">
                     <div class="flex gap-2">
-                        <button onclick="window.cloudAction('push')" class="flex-1 bg-indigo-600 text-white text-[10px] font-bold py-2 rounded-lg active:scale-95 transition-all">Push</button>
-                        <button onclick="window.cloudAction('pull')" class="flex-1 bg-slate-100 dark:bg-slate-700 text-[10px] font-bold py-2 rounded-lg active:scale-95 transition-all">Pull</button>
+                        <button onclick="window.cloudAction('push')" class="flex-1 bg-indigo-600 text-white text-[10px] font-bold py-2 rounded-lg">Push</button>
+                        <button onclick="window.cloudAction('pull')" class="flex-1 bg-slate-100 dark:bg-slate-700 text-[10px] font-bold py-2 rounded-lg">Pull</button>
                     </div>
                 </div>
-                <button onclick="window.hardReset()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2 text-rose-500 font-bold hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"><i class="fa-solid fa-trash"></i> Reset Database</button>
+                <button onclick="window.hardReset()" class="w-full text-left text-sm flex items-center gap-3 px-3 py-2 text-rose-500 font-bold hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl transition-all"><i class="fa-solid fa-trash"></i> Reset 10GB Data</button>
             </div>
         </div>
     </nav>
 
-    <aside id="sidebar">
+    <aside id="sidebar" class="no-scrollbar">
         <div class="p-4 flex flex-col h-full w-full">
             <nav class="flex flex-col gap-1 mb-10 w-full">
                 <button onclick="window.setViewContext('all')" id="ctx-all" class="sidebar-link active"><i class="fa-solid fa-note-sticky"></i> All Notes</button>
@@ -102,60 +103,56 @@
                 <button onclick="window.setViewContext('bin')" id="ctx-bin" class="sidebar-link"><i class="fa-solid fa-trash-can"></i> Trash Bin</button>
             </nav>
             
-            <div class="flex flex-col flex-grow">
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Labels</p>
+            <div class="flex-grow overflow-y-auto no-scrollbar">
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Labels</p>
                 <div id="sidebarTags" class="flex flex-col gap-1"></div>
             </div>
 
-            <div class="p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl border dark:border-indigo-800/30 mt-auto">
+            <div class="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-3xl border dark:border-indigo-800/30 mt-auto">
                 <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mb-2"><div id="storageBar" class="bg-indigo-500 h-1 rounded-full" style="width: 1%"></div></div>
-                <p id="storageText" class="text-[9px] text-slate-500 dark:text-slate-400 text-center font-bold tracking-tight uppercase">Ready • 10GB Available</p>
+                <p id="storageText" class="text-[9px] text-slate-500 dark:text-slate-400 text-center font-bold tracking-tight uppercase">Database Active • 10GB</p>
             </div>
         </div>
     </aside>
 
     <main id="mainContainer" class="pt-24 transition-all pr-4 md:pr-8">
         
-        <div id="noteCreator" class="max-w-2xl mx-auto bg-white dark:bg-[#1e293b] rounded-[2rem] shadow-xl border dark:border-slate-800 mb-12 overflow-hidden transition-all duration-300">
+        <div id="noteCreator" class="max-w-2xl mx-auto bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border dark:border-slate-800 mb-12 overflow-hidden transition-all duration-300">
             <div id="collapsedInput" onclick="window.expandCreator()" class="px-8 py-5 flex justify-between items-center cursor-text group">
                 <span class="text-slate-400 font-medium group-hover:text-indigo-500 transition-colors">Start a new note...</span>
-                <div class="flex gap-4 text-slate-300"><i class="fa-solid fa-pen-nib"></i><i class="fa-solid fa-camera"></i></div>
+                <div class="flex gap-4 text-slate-300"><i class="fa-solid fa-pen-nib"></i><i class="fa-solid fa-image"></i></div>
             </div>
 
             <div id="expandedInput" class="hidden p-8 animate-in fade-in duration-300">
-                <div class="flex items-center gap-4 mb-4">
-                    <input type="text" id="noteTitle" placeholder="Untitled Note" class="flex-grow font-bold text-2xl outline-none bg-transparent dark:text-white placeholder-slate-200">
-                    <button onclick="window.toggleFocusMode()" id="focusBtn" class="text-slate-400 hover:text-indigo-500 transition-colors"><i class="fa-solid fa-expand"></i></button>
-                </div>
-                <textarea id="noteContent" oninput="window.triggerAutoSave()" placeholder="What's on your mind?" class="w-full outline-none bg-transparent dark:text-slate-300 min-h-[160px] resize-none text-lg leading-relaxed"></textarea>
+                <input type="text" id="noteTitle" placeholder="Title" class="w-full font-bold text-2xl outline-none bg-transparent dark:text-white mb-4 placeholder-slate-200">
+                <textarea id="noteContent" oninput="window.triggerAutoSave()" placeholder="Start writing..." class="w-full outline-none bg-transparent dark:text-slate-300 min-h-[150px] resize-none text-lg leading-relaxed"></textarea>
                 
                 <div id="sketchArea" class="hidden mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] border dark:border-slate-700">
                     <div class="flex gap-4 items-center mb-4">
                         <button onclick="window.setTool('pencil')" id="t-pencil" class="p-2.5 rounded-xl bg-indigo-600 text-white"><i class="fa-solid fa-pencil"></i></button>
                         <button onclick="window.setTool('eraser')" id="t-eraser" class="p-2.5 rounded-xl bg-white dark:bg-slate-800 border"><i class="fa-solid fa-eraser text-rose-500"></i></button>
                         <input type="range" id="penWidth" min="1" max="40" value="4" class="w-24 accent-indigo-500">
-                        <button onclick="window.clearCanvas()" class="ml-auto text-[10px] text-rose-500 font-black uppercase tracking-widest hover:underline">Clear Board</button>
+                        <button onclick="window.clearCanvas()" class="ml-auto text-[10px] text-rose-500 font-black uppercase tracking-widest hover:underline">Wipe Board</button>
                     </div>
                     <canvas id="canvasBoard" width="850" height="450" class="shadow-sm"></canvas>
                 </div>
 
                 <div id="previewContainer" class="hidden mb-6 relative inline-block">
-                    <img id="imgPrev" src="" class="max-h-56 rounded-2xl shadow-xl border-4 border-white dark:border-slate-700">
+                    <img id="imgPrev" src="" class="max-h-64 rounded-3xl shadow-xl border-4 border-white dark:border-slate-700">
                     <button onclick="window.removeImg()" class="absolute -top-3 -right-3 bg-rose-500 text-white w-8 h-8 rounded-full shadow-lg text-xs">×</button>
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-between items-center pt-8 border-t dark:border-slate-800 gap-8">
-                    <div class="flex gap-8 items-center text-slate-400 text-2xl">
-                        <button onclick="window.toggleSketch()" title="Sketch"><i class="fa-solid fa-paintbrush hover:text-indigo-500"></i></button>
-                        <button onclick="window.startVoice()" id="micBtn" title="Dictation"><i class="fa-solid fa-microphone hover:text-rose-500"></i></button>
-                        <label class="cursor-pointer" title="Image"><i class="fa-solid fa-image hover:text-indigo-500"></i><input type="file" accept="image/*" class="hidden" onchange="window.handleImg(event)"></label>
-                        <button onclick="window.toggleRem()" title="Reminder"><i class="fa-solid fa-bell hover:text-amber-500"></i></button>
-                        <button onclick="window.exportCurrentToPDF()" title="Export PDF"><i class="fa-solid fa-file-pdf hover:text-rose-500"></i></button>
+                    <div class="flex gap-6 items-center text-slate-400 text-xl">
+                        <button onclick="window.toggleSketch()"><i class="fa-solid fa-paintbrush hover:text-indigo-500"></i></button>
+                        <button onclick="window.startVoice()" id="micBtn"><i class="fa-solid fa-microphone hover:text-rose-500"></i></button>
+                        <label class="cursor-pointer"><i class="fa-solid fa-image hover:text-indigo-500"></i><input type="file" accept="image/*" class="hidden" onchange="window.handleImg(event)"></label>
+                        <button onclick="window.toggleRem()"><i class="fa-solid fa-bell hover:text-amber-500"></i></button>
                     </div>
                     <div class="flex gap-4 w-full sm:w-auto">
-                        <span id="autoSaveMsg" class="text-[9px] text-emerald-500 font-black self-center opacity-0 transition-opacity uppercase tracking-[0.2em]">Saved</span>
-                        <button onclick="window.closeCreator()" class="flex-1 sm:flex-none px-8 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all">Cancel</button>
-                        <button onclick="window.saveNote()" id="saveBtn" class="flex-1 sm:flex-none px-12 py-3 bg-indigo-600 text-white font-black rounded-2xl shadow-xl hover:bg-indigo-700 active:scale-95 transition-all">Save Note</button>
+                        <span id="autoSaveMsg" class="text-[9px] text-emerald-500 font-black self-center opacity-0 transition-opacity uppercase tracking-widest">Saved</span>
+                        <button onclick="window.closeCreator()" class="flex-1 sm:flex-none px-8 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all">Cancel</button>
+                        <button onclick="window.saveNote()" id="saveBtn" class="flex-1 sm:flex-none px-12 py-3 bg-indigo-600 text-white font-black rounded-2xl shadow-xl active:scale-95 transition-all">Save Note</button>
                     </div>
                 </div>
                 <div id="remBox" class="hidden mt-6 pt-6 border-t dark:border-slate-800">
@@ -164,11 +161,6 @@
             </div>
         </div>
 
-        <div id="binHeader" class="hidden max-w-6xl mx-auto mb-10 p-6 bg-rose-50 dark:bg-rose-900/10 rounded-3xl border border-rose-100 dark:border-rose-900/30 flex justify-between items-center text-rose-600 font-bold">
-            <span class="text-sm tracking-tight uppercase font-black"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Trash Bin • Secured Storage</span>
-            <button onclick="window.emptyBin()" class="bg-rose-600 text-white px-6 py-2 rounded-xl text-xs font-black shadow-lg active:scale-95 transition-all">Empty All</button>
-        </div>
-        
         <div id="notesDisplay" class="notes-grid transition-all duration-700 pb-24"></div>
     </main>
 
@@ -177,7 +169,7 @@
         let db, notes = [], bin = [], viewCtx = 'all', isGrid = true, selectedImg = "", editingId = null, autoSaveT = null;
         let drawTool = 'pencil', isDrawing = false;
 
-        const dbReq = indexedDB.open("CloudWorkspaceDefinitiveV2", 1);
+        const dbReq = indexedDB.open("CloudWorkspaceDefinitiveV3", 1);
         dbReq.onupgradeneeded = e => {
             db = e.target.result;
             db.createObjectStore("notes", { keyPath: "id" });
@@ -207,7 +199,7 @@
                 if (viewCtx === 'all' || viewCtx === 'bin') return textMatch;
                 if (viewCtx === 'reminders') return textMatch && n.rem;
                 if (viewCtx === 'media') return textMatch && (n.img || n.sketch);
-                return textMatch && (n.tags || []).includes(viewCtx);
+                return textMatch;
             }).sort((a,b) => b.id - a.id).forEach(note => {
                 const card = document.createElement('div');
                 card.className = `note-item bg-white dark:bg-[#1e293b] shadow-sm border dark:border-slate-800 p-6 group active:scale-[0.99]`;
@@ -217,16 +209,12 @@
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="font-black text-xl leading-tight dark:text-white line-clamp-2">${note.title}</h3>
                         <div class="opacity-0 group-hover:opacity-100 flex gap-1 transition-all">
-                            ${viewCtx === 'bin' ? `<button onclick="window.restore(${note.id})" class="p-2 text-indigo-500"><i class="fa-solid fa-rotate-left"></i></button>` : `<button onclick="window.editNote(${note.id})" class="p-2 text-indigo-400"><i class="fa-solid fa-pencil"></i></button><button onclick="window.trash(${note.id})" class="p-2 text-rose-500"><i class="fa-solid fa-trash-can"></i></button>`}
+                            ${viewCtx === 'bin' ? `<button onclick="window.restore(${note.id})" class="p-2 text-indigo-500"><i class="fa-solid fa-rotate-left"></i></button>` : `<button onclick="window.editNote(${note.id})" class="p-2 text-indigo-400"><i class="fa-solid fa-pencil text-sm"></i></button><button onclick="window.trash(${note.id})" class="p-2 text-rose-500"><i class="fa-solid fa-trash-can text-sm"></i></button>`}
                         </div>
                     </div>
-                    <p class="text-sm text-slate-500 dark:text-slate-300 line-clamp-6 leading-relaxed mb-4">${note.content}</p>
-                    <div class="flex flex-wrap gap-2">
-                        ${(note.tags || []).map(t => `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-3 py-1 rounded-lg font-black uppercase">#${t}</span>`).join('')}
-                    </div>`;
+                    <p class="text-sm text-slate-500 dark:text-slate-300 whitespace-pre-wrap leading-relaxed line-clamp-6">${note.content}</p>`;
                 grid.appendChild(card);
             });
-            window.renderSidebarTags();
         };
 
         window.editNote = function(id) {
@@ -247,10 +235,8 @@
             const content = document.getElementById('noteContent').value;
             const sketch = !document.getElementById('sketchArea').classList.contains('hidden') ? canvas.toDataURL() : null;
             const rem = document.getElementById('noteRem').value;
-            const tags = (content.match(/#\w+/g) || []).map(t => t.replace('#',''));
-            
             if (!content && !sketch && !selectedImg) return window.closeCreator();
-            const noteData = { id: editingId || Date.now(), title, content, sketch, rem, img: selectedImg, tags };
+            const noteData = { id: editingId || Date.now(), title, content, sketch, rem, img: selectedImg };
             const tx = db.transaction("notes", "readwrite");
             tx.objectStore("notes").put(noteData);
             tx.oncomplete = () => { window.renderApp(); if(!isAuto) window.closeCreator(); window.updateStorage(); };
@@ -260,8 +246,8 @@
             const pass = document.getElementById('syncPass').value;
             if(!pass) return alert("Password required!");
             if(type === 'push') {
-                const code = btoa(JSON.stringify({notes, bin, pass, t: Date.now()}));
-                prompt("YOUR SECURE SYNC CODE:", code);
+                const data = btoa(JSON.stringify({notes, bin, pass, t: Date.now()}));
+                prompt("COPY SYNC CODE:", data);
             } else {
                 const code = prompt("PASTE SYNC CODE:");
                 if(!code) return;
@@ -290,8 +276,7 @@
         window.setViewContext = function(c) {
             viewCtx = c;
             document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-            const activeBtn = document.getElementById(`ctx-${c}`) || [...document.querySelectorAll('.sidebar-link')].find(btn => btn.innerText.includes(c));
-            if (activeBtn) activeBtn.classList.add('active');
+            document.getElementById(`ctx-${c}`).classList.add('active');
             if (window.innerWidth <= 1024) document.body.classList.remove('sidebar-open');
             document.getElementById('binHeader').style.display = (c === 'bin') ? 'flex' : 'none';
             window.renderUI();
@@ -302,22 +287,23 @@
         window.toggleDarkMode = function() { document.documentElement.classList.toggle('dark'); window.renderUI(); };
         window.toggleView = function() { isGrid = !isGrid; window.renderUI(); };
         window.expandCreator = function() { document.getElementById('collapsedInput').classList.add('hidden'); document.getElementById('expandedInput').classList.remove('hidden'); };
-        window.closeCreator = function() { editingId = null; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; document.getElementById('noteTitle').value = ""; window.clearCanvas(); selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); document.getElementById('saveBtn').innerText="Save Note"; };
+        window.closeCreator = function() { editingId = null; document.getElementById('saveBtn').innerText = "Save Note"; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; document.getElementById('noteTitle').value = ""; window.clearCanvas(); selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); };
         window.toggleSketch = function() { document.getElementById('sketchArea').classList.toggle('hidden'); };
         window.clearCanvas = function() { ctx.clearRect(0,0,canvas.width,canvas.height); };
         window.handleImg = function(e) { const r = new FileReader(); r.onload = v => { selectedImg = v.target.result; document.getElementById('imgPrev').src = v.target.result; document.getElementById('previewContainer').classList.remove('hidden'); }; r.readAsDataURL(e.target.files[0]); };
         window.trash = function(id) { const n = notes.find(x => x.id === id); const tx = db.transaction(["notes","bin"], "readwrite"); tx.objectStore("bin").put(n); tx.objectStore("notes").delete(id); tx.oncomplete = window.renderApp; };
         window.restore = function(id) { const b = bin.find(x => x.id === id); const tx = db.transaction(["notes","bin"], "readwrite"); tx.objectStore("notes").put(b); tx.objectStore("bin").delete(id); tx.oncomplete = window.renderApp; };
-        window.hardReset = function() { if(confirm("WIPE ENTIRE 10GB DATABASE?")) { indexedDB.deleteDatabase("CloudWorkspaceDefinitiveV2"); location.reload(); } };
-        window.updateStorage = function() { if(navigator.storage && navigator.storage.estimate) { navigator.storage.estimate().then(e => { document.getElementById('storageText').innerText = (e.usage/1024/1024).toFixed(1)+'MB / 10GB USED'; document.getElementById('storageBar').style.width = (e.usage/(1024*1024*1024*10)*100)+'%'; }); } };
-        window.renderSidebarTags = function() { const tags = [...new Set(notes.flatMap(n => n.tags || []))]; document.getElementById('sidebarTags').innerHTML = tags.map(t => `<button onclick="window.setViewContext('${t}')" class="sidebar-link"># ${t}</button>`).join(''); };
+        window.hardReset = function() { if(confirm("Permanently wipe 10GB data?")) { indexedDB.deleteDatabase("CloudWorkspaceDefinitiveV2"); location.reload(); } };
+        window.updateStorage = function() { if(navigator.storage && navigator.storage.estimate) { navigator.storage.estimate().then(e => { document.getElementById('storageBar').style.width = (e.usage/(1024*1024*1024*10)*100)+'%'; }); } };
         window.triggerAutoSave = function() { clearTimeout(autoSaveT); autoSaveT = setTimeout(() => { if(editingId) window.saveNote(true); document.getElementById('autoSaveMsg').style.opacity = 1; setTimeout(()=>document.getElementById('autoSaveMsg').style.opacity=0, 1500); }, 3000); };
+        window.toggleRem = function() { document.getElementById('remBox').classList.toggle('hidden'); };
+        window.removeImg = function() { selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); };
         window.exportCurrentToPDF = function() { window.print(); };
 
         const canvas = document.getElementById('canvasBoard'); const ctx = canvas.getContext('2d');
         const getP = e => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || e.touches[0].clientX) - r.left, y: (e.clientY || e.touches[0].clientY) - r.top }; };
         canvas.addEventListener('mousedown', e => { isDrawing = true; ctx.beginPath(); const p = getP(e); ctx.moveTo(p.x, p.y); });
-        canvas.addEventListener('mousemove', e => { if(!isDrawing) return; const p = getP(e); ctx.lineWidth = document.getElementById('penWidth').value; ctx.lineCap = 'round'; if(drawTool === 'eraser') ctx.globalCompositeOperation = 'destination-out'; else { ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = '#6366f1'; } ctx.lineTo(p.x, p.y); ctx.stroke(); });
+        canvas.addEventListener('mousemove', e => { if(!isDrawing) return; const p = getP(e); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#6366f1'; ctx.lineTo(p.x, p.y); ctx.stroke(); });
         window.addEventListener('mouseup', () => isDrawing = false);
         window.setTool = function(t) { drawTool = t; };
     })();
