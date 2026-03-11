@@ -38,6 +38,7 @@
 
         .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 1.5rem; }
         .note-item { transition: all 0.3s ease; border-radius: 1.5rem; overflow: hidden; border: 1px solid transparent; }
+        .note-item:hover { transform: translateY(-4px); border-color: #6366f1; }
         
         canvas { touch-action: none; cursor: crosshair; background: #fff; border-radius: 1rem; width: 100%; aspect-ratio: 16/9; }
         .hidden-scale { transform: scale(0.95); opacity: 0; pointer-events: none; transition: all 0.2s ease; }
@@ -60,7 +61,7 @@
             </div>
         </div>
         <div class="flex-grow max-w-xl mx-4 relative hidden sm:block">
-            <input type="text" id="searchInput" oninput="window.renderUI()" placeholder="Search project..." class="w-full bg-slate-100 dark:bg-slate-800 rounded-full py-2 pl-10 pr-4 outline-none border-none dark:text-white">
+            <input type="text" id="searchInput" oninput="window.renderUI()" placeholder="Search everything..." class="w-full bg-slate-100 dark:bg-slate-800 rounded-full py-2 pl-10 pr-4 outline-none border-none dark:text-white">
         </div>
         <button onclick="window.toggleSettings()" class="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-full"><i class="fa-solid fa-gear"></i></button>
         
@@ -70,14 +71,14 @@
                 <button onclick="window.exportJSON()" class="text-xs font-bold p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-indigo-500"><i class="fa-solid fa-download mb-1 block"></i> Backup</button>
             </div>
             <div class="space-y-2 border-t pt-4 dark:border-slate-700">
-                <p class="text-[10px] font-black text-slate-400 uppercase px-1">Sync Engine (Password Based)</p>
-                <input type="password" id="syncPass" placeholder="Private Sync Key" class="w-full text-xs p-3 rounded-xl bg-gray-50 dark:bg-slate-900 border dark:border-slate-700 outline-none dark:text-white">
+                <p class="text-[10px] font-black text-slate-400 uppercase px-1">Sync Key Engine</p>
+                <input type="password" id="syncPass" placeholder="Private Key" class="w-full text-xs p-3 rounded-xl bg-gray-50 dark:bg-slate-900 border dark:border-slate-700 outline-none">
                 <div class="flex gap-2">
-                    <button onclick="window.cloudAction('push')" class="flex-1 bg-indigo-600 text-white text-[10px] font-bold py-2.5 rounded-xl">Push Code</button>
-                    <button onclick="window.cloudAction('pull')" class="flex-1 bg-slate-200 dark:bg-slate-700 text-[10px] font-bold py-2.5 rounded-xl">Pull Sync</button>
+                    <button onclick="window.cloudAction('push')" class="flex-1 bg-indigo-600 text-white text-[10px] font-bold py-2.5 rounded-xl">Push</button>
+                    <button onclick="window.cloudAction('pull')" class="flex-1 bg-slate-200 dark:bg-slate-700 text-[10px] font-bold py-2.5 rounded-xl">Pull</button>
                 </div>
             </div>
-            <button onclick="window.hardReset()" class="w-full text-xs text-rose-500 font-bold p-2 hover:bg-rose-50 rounded-xl transition-all">Wipe All Data</button>
+            <button onclick="window.hardReset()" class="w-full text-xs text-rose-500 font-bold p-2 hover:bg-rose-50 rounded-xl transition-all">Wipe Database</button>
         </div>
     </nav>
 
@@ -88,9 +89,9 @@
                 <button onclick="window.setViewContext('bin')" id="ctx-bin" class="sidebar-link"><i class="fa-solid fa-trash-can"></i> Trash Bin</button>
             </nav>
             <div class="mt-auto p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border dark:border-indigo-800/30">
-                <p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase text-center mb-2">Storage Usage</p>
+                <p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase text-center mb-2">Cloud Storage</p>
                 <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-1.5 mb-1"><div id="storageBar" class="bg-indigo-600 h-1.5 rounded-full" style="width: 1%"></div></div>
-                <p id="storageText" class="text-[9px] text-center font-bold text-slate-500">Calculating...</p>
+                <p id="storageText" class="text-[9px] text-center font-bold text-slate-500">Connecting...</p>
             </div>
         </div>
     </aside>
@@ -99,7 +100,7 @@
         
         <section id="editorSection">
             <div id="noteCreator" class="max-w-2xl mx-auto bg-white dark:bg-[#1e293b] rounded-[2.5rem] shadow-xl border dark:border-slate-800 mb-12 overflow-hidden">
-                <div id="collapsedInput" onclick="window.expandCreator()" class="px-8 py-5 flex justify-between items-center cursor-text group">
+                <div id="collapsedInput" onclick="window.expandCreator()" class="px-8 py-5 flex justify-between items-center cursor-text">
                     <span class="text-slate-400 font-medium">Capture a thought...</span>
                     <i class="fa-solid fa-pen-nib text-slate-300"></i>
                 </div>
@@ -127,8 +128,8 @@
         </section>
 
         <div id="binHeader" class="hidden max-w-2xl mx-auto mb-10 p-6 bg-rose-50 dark:bg-rose-950/20 rounded-3xl border border-rose-100 flex justify-between items-center text-rose-600 font-bold">
-            <span class="text-xs uppercase tracking-widest font-black">Trash vault storage</span>
-            <button onclick="window.emptyBin()" class="bg-rose-600 text-white px-6 py-2 rounded-xl text-xs font-black">Empty Bin</button>
+            <span class="text-xs uppercase tracking-widest font-black italic">Trash Vault Storage</span>
+            <button id="emptyBtn" onclick="window.emptyBin()" class="bg-rose-600 text-white px-6 py-2 rounded-xl text-xs font-black shadow-lg hover:bg-rose-700 transition-all">Empty Bin</button>
         </div>
 
         <div id="notesDisplay" class="notes-grid max-w-6xl mx-auto pb-24"></div>
@@ -138,7 +139,7 @@
     (function() {
         let db, notes = [], bin = [], viewCtx = 'all', editingId = null, selectedImg = "";
         
-        const dbReq = indexedDB.open("CloudNote_Platinum_Final", 1);
+        const dbReq = indexedDB.open("CloudNote_Platinum_V10", 1);
         dbReq.onupgradeneeded = e => {
             db = e.target.result;
             db.createObjectStore("notes", { keyPath: "id" });
@@ -155,7 +156,6 @@
         };
 
         window.renderUI = function() {
-            // PHYSICALLY HIDE EDITOR IN BIN TAB
             document.getElementById('editorSection').style.display = (viewCtx === 'bin') ? 'none' : 'block';
             document.getElementById('binHeader').classList.toggle('hidden', viewCtx !== 'bin');
 
@@ -166,7 +166,7 @@
                 const card = document.createElement('div');
                 card.className = `note-item bg-white dark:bg-[#1e293b] shadow-sm border dark:border-slate-800 p-6 group`;
                 card.innerHTML = `
-                    ${n.img ? `<img src="${n.img}" class="w-full max-h-48 object-cover rounded-xl mb-4 border dark:border-slate-700">` : ''}
+                    ${n.img ? `<img src="${n.img}" class="w-full max-h-48 object-cover rounded-xl mb-4 border">` : ''}
                     ${n.sketch ? `<img src="${n.sketch}" class="w-full rounded-xl mb-4 bg-slate-50 border">` : ''}
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="font-bold text-lg dark:text-white line-clamp-1">${n.title}</h3>
@@ -179,19 +179,29 @@
             });
         };
 
-        // Note Save & Update
         window.saveNote = function() {
-            const title = document.getElementById('noteTitle').value || "Untitled";
-            const content = document.getElementById('noteContent').value;
-            const sketch = !document.getElementById('sketchArea').classList.contains('hidden') ? canvas.toDataURL() : null;
-            if (!content && !sketch && !selectedImg) return window.closeCreator();
-            const note = { id: editingId || Date.now(), title, content, sketch, img: selectedImg };
+            const note = { id: editingId || Date.now(), title: document.getElementById('noteTitle').value || "Untitled", content: document.getElementById('noteContent').value, sketch: !document.getElementById('sketchArea').classList.contains('hidden') ? canvas.toDataURL() : null, img: selectedImg };
             const tx = db.transaction("notes", "readwrite");
             tx.objectStore("notes").put(note);
             tx.oncomplete = () => { window.closeCreator(); window.renderApp(); window.updateStorage(); };
         };
 
-        // Cloud Sync Engine
+        window.trash = function(id) { 
+            const n = notes.find(x => x.id === id); 
+            const tx = db.transaction(["notes","bin"], "readwrite");
+            tx.objectStore("bin").put(n);
+            tx.objectStore("notes").delete(id);
+            tx.oncomplete = window.renderApp; 
+        };
+
+        window.emptyBin = function() {
+            if(confirm("Empty bin permanently?")) {
+                const tx = db.transaction("bin", "readwrite");
+                tx.objectStore("bin").clear();
+                tx.oncomplete = () => { window.renderApp(); window.updateStorage(); }; // REFRESH UI AFTER CLEAR
+            }
+        };
+
         window.cloudAction = function(type) {
             const pass = document.getElementById('syncPass').value; if(!pass) return alert("Key required!");
             if(type === 'push') prompt("YOUR SYNC CODE:", btoa(JSON.stringify({notes, bin, pass})));
@@ -201,16 +211,13 @@
                 location.reload(); } else alert("Wrong Key!"); } catch(e) { alert("Error!"); } }
         };
 
-        // Speech to Text
         window.startVoice = function() {
             const S = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if(!S) return alert("No Speech Support");
-            const r = new S(); document.getElementById('micBtn').classList.add('text-rose-500', 'animate-pulse');
+            if(!S) return; const r = new S(); document.getElementById('micBtn').classList.add('text-rose-500', 'animate-pulse');
             r.onresult = (e) => { document.getElementById('noteContent').value += " " + e.results[0][0].transcript; document.getElementById('micBtn').classList.remove('text-rose-500', 'animate-pulse'); };
             r.start();
         };
 
-        // Tab Switching
         window.setViewContext = function(c) {
             viewCtx = c;
             document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
@@ -227,28 +234,19 @@
             window.scrollTo({top:0, behavior:'smooth'});
         };
 
-        window.trash = function(id) { 
-            const n = notes.find(x => x.id === id); 
-            const tx = db.transaction(["notes","bin"], "readwrite");
-            tx.objectStore("bin").put(n);
-            tx.objectStore("notes").delete(id);
-            tx.oncomplete = window.renderApp; 
-        };
         window.restore = function(id) { const b = bin.find(x => x.id === id); const tx = db.transaction(["notes","bin"], "readwrite"); tx.objectStore("notes").put(b); tx.objectStore("bin").delete(id); tx.oncomplete = window.renderApp; };
-        window.emptyBin = function() { db.transaction("bin", "readwrite").objectStore("bin").clear().oncomplete = window.renderApp; };
-
-        // UI Utils
         window.toggleSidebar = function() { document.body.classList.toggle('sidebar-open'); };
         window.toggleSettings = function() { document.getElementById('settingsDropdown').classList.toggle('hidden-scale'); };
         window.toggleDarkMode = function() { document.documentElement.classList.toggle('dark'); window.renderUI(); };
         window.toggleFocusMode = function() { document.body.classList.toggle('focus-active'); };
         window.expandCreator = function() { document.getElementById('collapsedInput').classList.add('hidden'); document.getElementById('expandedInput').classList.remove('hidden'); };
-        window.closeCreator = function() { editingId = null; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; document.getElementById('noteTitle').value = ""; selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); };
+        window.closeCreator = function() { editingId = null; document.getElementById('collapsedInput').classList.remove('hidden'); document.getElementById('expandedInput').classList.add('hidden'); document.getElementById('noteContent').value = ""; document.getElementById('noteTitle').value = ""; selectedImg = ""; document.getElementById('previewContainer').classList.add('hidden'); if(document.body.classList.contains('focus-active')) window.toggleFocusMode(); };
         window.handleImg = function(e) { const r = new FileReader(); r.onload = v => { selectedImg = v.target.result; document.getElementById('imgPrev').src = v.target.result; document.getElementById('previewContainer').classList.remove('hidden'); }; r.readAsDataURL(e.target.files[0]); };
         window.updateStorage = function() { if(navigator.storage && navigator.storage.estimate) { navigator.storage.estimate().then(e => { document.getElementById('storageBar').style.width = (e.usage/(1024*1024*1024*10)*100)+'%'; document.getElementById('storageText').innerText = (e.usage/1024/1024).toFixed(1)+' MB used / 10GB'; }); } };
         window.toggleSketch = function() { document.getElementById('sketchArea').classList.toggle('hidden'); };
+        window.clearCanvas = function() { ctx.clearRect(0,0,canvas.width,canvas.height); };
         window.exportJSON = function() { const blob = new Blob([JSON.stringify({notes, bin})], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='CloudNote_Backup.json'; a.click(); };
-        window.hardReset = function() { if(confirm("Wipe all data?")) { indexedDB.deleteDatabase("CloudNote_Platinum_Final"); location.reload(); } };
+        window.hardReset = function() { if(confirm("Wipe all data?")) { indexedDB.deleteDatabase("CloudNote_Platinum_V10"); location.reload(); } };
 
         const canvas = document.getElementById('canvasBoard'); const ctx = canvas.getContext('2d');
         const getP = e => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || e.touches[0].clientX) - r.left, y: (e.clientY || e.touches[0].clientY) - r.top }; };
